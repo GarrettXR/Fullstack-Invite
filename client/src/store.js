@@ -1,10 +1,10 @@
 import { createStore, combineReducers } from 'redux'
 
-import exampleReducer from './reducers/exampleReducer'
+import invitesReducer from './reducers/invitesReducer'
 // import all reducers here
 
 const rootReducer = combineReducers({
-  exampleReducer
+  invitesReducer
   // put reducers here
 })
 
