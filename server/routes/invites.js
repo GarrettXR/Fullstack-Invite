@@ -2,80 +2,57 @@ const express = require('express')
 const Router = express.Router()
 const axios = require('axios')
 
-const data = {
-  contacts: [],
-  invited: [],
-  notinvited: []
-}
+var contacts = []
 
-Router.get('/invites', (req, res, next) => {
   axios.get('https://randomuser.me/api/?results=100').then( resp => {
-    const contacts = resp.data.results.map( (data, i) => {
-      return{
+     contacts = resp.data.results.map( (data, i) => (
+      {
         id: i + 1,
         fname: data.name.first,
         lname: data.name.last,
         phone: data.phone,
         email: data.email,
         image: data.picture.large,
-        status: ""
+        status: "pending"
      } 
-    })
+    )
+  )
     data.contacts = contacts
-    res.json(contacts)
   })
+
+Router.get('/invites', (req, res, next) => {
+  res.json({
+    contacts: contacts.find(contacts => contacts.status === "pending")
+  })   
 })
 
-Router.get('/invited', (req, res , next) => {
-  res.json(data.invited)
+Router.get('/going', (req,res,next) => {
+const contactsGoing = contacts.filter(contacts => contacts.status === "going")
+res.json(contactsGoing)
 })
 
-Router.get('/notinvited', (req, res , next) => {
-  res.json(data.notinvited)
+Router.get('/notgoing', (req,res,next) => {
+const contactsNotGoing = people.filter(contacts => contacts.status === "notgoing")
+res.json(contactsNotGoing)
 })
 
-Router.patch('/invited', (req, res, next) => {
-  const id = req.body.id
+Router.patch('/invites/', (req,res,next) => {
 
-  const contactIsInvited = data.invited.filter(person => id == person.id).length !== 0
-  const contactIsNotInvited = data.notinvited.filter(person => id == person.id).length !== 0
-  const contactIsPending = data.contacts.filter(person => id == person.id).length !== 0
+const id = req.body.id;
+const status = req.body.status;
 
-  if (contactIsPending) {
-    const contact = data.contacts.find(person => id == person.id)
-    data.contacts = data.contacts.filter(person => id != person.id)
-    data.invited.push(contact)
+contacts = contacts.map(contact => {
+  if (contact.id == id) {
+    return {...contact, status}
+  } else {
+    return contact
   }
+});
 
-  if (contactIsNotInvited) {
-    const contact = data.notinvited.find(person => id == person.id)
-    data.notinvited = data.notinvited.filter(person => id != person.id)
-    data.invited.push(contact)
-  }
+// console.log(data.contacts);
 
-  res.json(data.invited)
+res.json(contacts);
 })
 
-Router.patch('/notinvited', (req, res, next) => {
-  const id = req.body.id
-
-  const contactIsInvited = data.invited.filter(person => id == person.id).length !== 0
-  const contactIsNotInvited = data.notinvited.filter(person => id == person.id).length !== 0
-  const contactIsPending = data.contacts.filter(person => id == person.id).length !== 0
-
-  if (contactIsPending) {
-    const contact = data.contacts.find(person => id == person.id)
-    data.contacts = data.contacts.filter(person => id != person.id)
-    data.notinvited.push(contact)
-  }
-
-  if (contactIsInvited) {
-    const contact = data.invited.find(person => id == person.id)
-    data.invited = data.invited.filter(person => id != person.id)
-    data.notinvited.push(contact)
-  }
-
-  res.json(data.notinvited)
-})
 
 module.exports = Router
